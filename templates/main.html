@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>ECharts</title>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js">
+    </script>
+    <!-- 引入刚刚下载的 ECharts 文件 -->
+    <script src="static/js/echarts.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="static/js/jquery.min.js"></script>
+    <style>
+        #main,
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        #main {
+            height: 100%;
+        }
+
+        .keywordBox {
+            height: 30px;
+            width: auto;
+            display: inline-block;
+            padding: 0px 18px;
+            margin: 10px 5px;
+
+            box-shadow: 0px 4px 10px #e0e0e0;
+            font-size: 14px;
+            color: rgba(239, 239, 239, 0.95);
+        }
+
+        .keywordBox:hover {
+            box-shadow: 0px 4px 15px #bababa;
+            color: rgba(239, 239, 239, 0.95);
+            text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.76);
+        }
+
+        .btn:focus {
+            box-shadow: 0px 4px 10px #e0e0e0 !important;
+            color: rgba(239, 239, 239, 0.95);
+
+        }
+
+        .scrobar::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .scrobar::-webkit-scrollbar-track {
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            background: #ededed;
+        }
+
+        .scrobar::-webkit-scrollbar-thumb {
+            border-radius: 10px;
+            /*box-shadow   : inset 0 0 5px rgba(0, 0, 0, 0.2);*/
+            background: #aaaaaa;
+        }
+
+    </style>
+</head>
+<body>
+
+<!--第一行-->
+<div class="row"
+     style="height: 6%; width: 100%; border-bottom: 1px solid gainsboro; margin: 0px; box-shadow: 0px 3px 10px #f1f1f1;">
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark" style="height: 100%">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Knowledge Graph Map for Sustainable Education</a>
+        </div>
+    </nav>
+</div>
+<!--&lt;!&ndash;第一行&ndash;&gt;-->
+<!--<div class="row" style="height: 5%; width: 100%; border-bottom: 1px solid gainsboro; margin: 0px; box-shadow: 0px 3px 10px #f1f1f1;">-->
+<!--  <div class="col" style="height: 100%;">-->
+<!--    <nav class="navbar navbar-expand-sm bg-light"> </nav>-->
+<!--&lt;!&ndash;    <h1 style="font-size:20px; display: inline-block; vertical-align: middle;margin-top:1%"><b>Knowledge Graph Map for Sustainable Education</b></h1>&ndash;&gt;-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--第二行-->
+<div class="row" style="height: 94%; width: 100%;">
+    <div class="col-md-8" style="height: 100%">
+        <div id="main"></div> <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+        <div id="loadingIcon" class="spinner-border text-primary" style="position: relative;display:none"></div>
+    </div>
+    <div class="col-md-4" style="border-left: 2px solid gainsboro; height: 100%; padding-top: 15px">
+        <!-- Nav pills -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="pill" href="#searchContent">检索节点</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="pill" href="#txtRecord">文字记录</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+
+            <div style="height: 50%; padding-top: 20px; padding-bottom: 10px;" id="searchContent" class="container tab-pane active">
+                <h3><b>检索节点</b></h3>
+                <form class="d-flex" style="margin-top: 20px">
+                    <input class="form-control me-2" type="text" placeholder="Node Name" style="border-radius: 30px;"
+                           name="searchName" id="searchName">
+                    <button class="btn" type="submit" value="submit" id="searchBut"
+                            style="background-color: #4a86ea; color:rgba(255,255,255,0.9);border-radius: 30px;">Search
+                    </button>
+
+                </form>
+                <h4 style="margin-top: 25px"><b>相似节点</b></h4>
+                <div id="searchResNodes">
+
+
+                </div>
+            </div>
+
+
+            <div style="height: 50%; width: 100%; padding-bottom: 5px; padding-top: 20px; " id="txtRecord" class="container tab-pane fade">
+
+            <h3 style="display:inline"><b>文字记录</b></h3>
+            <button type="button" class="btn rounded-pill keywordBox" id="refreshRecord" style="background-color: #4a86ea; margin-left: 50px; margin-top: 0px">
+                刷新
+            </button>
+            <div id="recordResNodes">
+
+            </div>
+            <div class="scrobar" style="height:50%; overflow-y:auto; margin-top:10px">
+                <p id="dicTxt"></p>
+            </div>
+
+
+        </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<script type=text/javascript>
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    $(function () {
+        $('#searchBut').bind('click', function () {
+            $.getJSON($SCRIPT_ROOT + '/search', {
+                // {#weight: returnWeight(),#}
+                searchKeyword: $("#searchName").val()
+            }, function (data) {
+
+                // {#loadingFinished();#}
+                // {#console.log(data.nodes_trans, data.links_trans)#}
+                // {#drawGraph(data.nodes_trans, data.links_trans);#}
+
+                clearNodes(); //清空div内容
+
+                for (var i = 0; i < data.funcNodes.length; i++) {
+                    $("#searchResNodes").append('<button type="button" class="btn rounded-pill keywordBox funcNodes" style="background-color: #6499B0;">' + data.funcNodes[i] + '</button>');
+                }
+
+
+                for (var i = 0; i < data.techNodes.length; i++) {
+                    $("#searchResNodes").append('<button type="button" class="btn rounded-pill keywordBox techNodes" style="background-color: #886CC5;">' + data.techNodes[i] + '</button>');
+                }
+
+
+                for (var i = 0; i < data.sustainNodes.length; i++) {
+                    $("#searchResNodes").append('<button type="button" class="btn rounded-pill keywordBox sustainNodes" style="background-color: #73AD69;">' + data.sustainNodes[i] + '</button>');
+                }
+
+                btnClickRefresh(); //刷新绑定click事件
+
+            });
+            return false;
+        });
+    });
+
+    //听写内容刷新
+    $(function () {
+        $('#refreshRecord').bind('click', function () {
+            $.getJSON($SCRIPT_ROOT + '/refreshRecord', {
+                // {#weight: returnWeight(),#}
+                //searchKeyword: $("#searchName").val()
+            }, function (data) {
+                document.getElementById("dicTxt").innerHTML=data.dicTxt;
+                clearRecordNodes(); //清空div内容
+
+                for (var i = 0; i < data.funcNodes.length; i++) {
+                    $("#recordResNodes").append('<button type="button" class="btn rounded-pill keywordBox funcNodes" style="background-color: #6499B0;">' + data.funcNodes[i] + '</button>');
+                }
+
+
+                for (var i = 0; i < data.techNodes.length; i++) {
+                    $("#recordResNodes").append('<button type="button" class="btn rounded-pill keywordBox techNodes" style="background-color: #886CC5;">' + data.techNodes[i] + '</button>');
+                }
+
+
+                for (var i = 0; i < data.sustainNodes.length; i++) {
+                    $("#recordResNodes").append('<button type="button" class="btn rounded-pill keywordBox sustainNodes" style="background-color: #73AD69;">' + data.sustainNodes[i] + '</button>');
+                }
+
+                btnClickRefresh(); //刷新绑定click事件
+            });
+            return false;
+        });
+    });
+
+</script>
+
+<script>
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    function btnClickRefresh() {
+        $(".funcNodes").click(function () {
+            onloading();
+            console.log($(this).text());
+
+            $.getJSON($SCRIPT_ROOT + '/searchdatabase', {
+                // {#weight: returnWeight(),#}
+                searchKeyword: $(this).text(),
+                type: "function"
+            }, function (data) {
+
+                loadingFinished();
+                console.log(data.nodes_trans, data.links_trans)
+                drawGraph(data.nodes_trans, data.links_trans);
+
+            });
+            // {#loadingFinished();#}
+            // {#console.log(data.nodes_trans, data.links_trans)#}
+            // {#drawGraph(data.nodes_trans, data.links_trans);#}
+            return false;
+        });
+
+        $(".techNodes").click(function () {
+            onloading();
+            console.log($(this).text());
+
+            $.getJSON($SCRIPT_ROOT + '/searchdatabase', {
+                // {#weight: returnWeight(),#}
+                searchKeyword: $(this).text(),
+                type: "technology"
+            }, function (data) {
+
+                loadingFinished();
+                console.log(data.nodes_trans, data.links_trans)
+                drawGraph(data.nodes_trans, data.links_trans);
+
+            });
+            // {#loadingFinished();#}
+            // {#console.log(data.nodes_trans, data.links_trans)#}
+            // {#drawGraph(data.nodes_trans, data.links_trans);#}
+            return false;
+        });
+
+        $(".sustainNodes").click(function () {
+            onloading();
+            console.log($(this).text());
+
+            $.getJSON($SCRIPT_ROOT + '/searchdatabase', {
+                // {#weight: returnWeight(),#}
+                searchKeyword: $(this).text(),
+                type: "sustain"
+            }, function (data) {
+
+                loadingFinished();
+                console.log(data.nodes_trans, data.links_trans)
+                drawGraph(data.nodes_trans, data.links_trans);
+
+            });
+            // {#loadingFinished();#}
+            // {#console.log(data.nodes_trans, data.links_trans)#}
+            // {#drawGraph(data.nodes_trans, data.links_trans);#}
+            return false;
+        });
+    }
+</script>
+
+<script>
+    function clearNodes() {
+        $("#searchResNodes").empty();
+    }
+
+    function clearRecordNodes(){
+        $("#recordResNodes").empty();
+    }
+
+    function onloading() {
+        document.getElementById("loadingIcon").style.display = 'block';
+    }
+
+    function loadingFinished() {
+        document.getElementById("loadingIcon").style.display = 'none';
+    }
+</script>
+
+<script>
+    function loadingIcon() {
+        // {#调整加载动画图标的位置#}
+        load = document.getElementById("loadingIcon")
+        load.style.top = -window.innerHeight / 2 + 'px';
+        load.style.left = window.innerWidth / 3 + 'px';
+    }
+
+    window.addEventListener("resize", loadingIcon);
+    loadingIcon()
+</script>
+
+
+<!--绘制关系图-->
+<script type="text/javascript">
+    function drawGraph(nodes_get, links_get) {
+        var chartDom = document.getElementById('main');
+        var myChart = echarts.init(chartDom);
+        var cat = [{"name": "Sustainable"}, {"name": "Function"}, {"name": "Technology"}];
+
+        window.onresize = function () {
+            myChart.resize();
+        };
+        var option;
+
+        option = {
+            title: {},
+            tooltip: {},
+            legend: [
+                {
+                    orient: 'vertical',
+                    x: 'left',
+                    y: 'center',
+                    itemGap: 30,
+                    icon: 'circle',
+                    padding: [0, 0, 0, 30], //可设定图例[距上方距离，距右方距离，距下方距离，距左方距离]
+                    data: cat.map(function (a) {
+                        return a.name;
+                    })
+                }
+            ],
+            animationDurationUpdate: 5000,
+            animationEasingUpdate: 'quinticInOut',
+            series: [
+                {
+                    type: 'graph',
+                    layout: 'force',
+                    symbolSize: 50,
+                    roam: true,
+
+                    focusNodeAdjacency: true,//当鼠标移动到节点上，突出显示节点以及节点的边和邻接节点
+                    draggable: true,//指示节点是否可以拖动
+                    label: { //node的标签
+                        show: true,
+                    },
+                    force: {
+                        repulsion: [2000, 4000],//节点之间的斥力因子。支持数组表达斥力范围，值越大斥力越大。
+                        edgeLength: [80, 100],//边的两个节点之间的距离
+                        gravity: 0.1, //节点受到的向中心的引力因子。该值越大节点越往中心点靠拢。
+                        // layoutAnimation: false,
+                    },
+                    edgeSymbolSize: [4, 50], // 边两端的标记大小，可以是一个数组分别指定两端，也可以是单个统一指定。
+                    edgeLabel: {
+                        show: true,
+                        textStyle: {
+                            fontSize: 10
+                        },
+                        formatter: "{c}"
+                    },
+
+                    //鼠标悬停高亮样式
+                    emphasis: {
+                        itemStyle: {
+                            shadowColor: "rgba(127,127,127,0.4)",
+                            shadowBlur: 15,
+                        },
+                        lineStyle: {
+                            width: 4,
+                        },
+                        label: {
+                            textBorderColor: "rgba(255, 255, 255, 0.8)",
+                            textBorderWidth: 0.5,
+                        },
+                    },
+
+                    edgeSymbol: ['circle', 'arrow'],
+                    edgeSymbolSize: [4, 10],
+                    // edgeLabel: {
+                    //     show: true,
+                    //     formatter: '{b}:{@source}',
+                    //     fontSize: 12
+                    // },
+                    data: nodes_get,
+                    // links: [],
+                    links: links_get,
+                    categories: [{name: 'Sustainable', itemStyle: {color: "#73AD69"}}, {
+                        name: 'Function',
+                        itemStyle: {color: "#6499B0"}
+                    }, {name: 'Technology', itemStyle: {color: "#886CC5"}}],
+                    lineStyle: {
+                        opacity: 0.9,
+                        width: 2,
+                        curveness: 0.1,
+                        color: function (params) {
+                            if (params.data.value == "have_function_of")
+                                return "#73AD69";
+                            else
+                                return "#6499B0";
+                        }
+                    },
+                    // {#itemStyle:{
+                    //     normal:{
+                    //         color: function(params){
+                    //             return params.data.colors;
+                    //         }
+                    //     }
+                    // },#}
+
+                }
+            ]
+        };
+
+        //节点自定义拖拽不回弹
+        myChart.on('mouseup', function (params) {
+            var op = myChart.getOption();
+            op.series[0].data[params.dataIndex].x = params.event.offsetX;
+            op.series[0].data[params.dataIndex].y = params.event.offsetY;
+            op.series[0].data[params.dataIndex].fixed = true;
+            myChart.setOption(op);
+        });
+
+        option && myChart.setOption(option);
+    }
+</script>
+
+
+</body>
+</html>

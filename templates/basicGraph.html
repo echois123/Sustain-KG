@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>ECharts</title>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js">
+    </script>
+    <!-- 引入刚刚下载的 ECharts 文件 -->
+    <script src="../static/js/echarts.js"></script>
+</head>
+<body>
+
+<div>
+
+</div>
+
+<!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+<div id="main" style="width: 900px;height:900px;"></div>
+<script type="text/javascript">
+    var chartDom = document.getElementById('main');
+    var myChart = echarts.init(chartDom);
+    var option;
+
+    option = {
+        title: {
+            text: 'Basic Graph'
+        },
+        tooltip: {},
+        animationDurationUpdate: 5000,
+        animationEasingUpdate: 'quinticInOut',
+        series: [
+            {
+                type: 'graph',
+                layout: 'force',
+                symbolSize: 50,
+                roam: true,
+                focusNodeAdjacency: true,//当鼠标移动到节点上，突出显示节点以及节点的边和邻接节点
+                draggable: true,//指示节点是否可以拖动
+                label: { //node的标签
+                    show: true,
+                },
+                force: {
+                    repulsion: [2000,4000],//节点之间的斥力因子。支持数组表达斥力范围，值越大斥力越大。
+                    edgeLength: [80,100],//边的两个节点之间的距离
+                    gravity: 0.1, //节点受到的向中心的引力因子。该值越大节点越往中心点靠拢。
+                    // layoutAnimation: false,
+                },
+                edgeSymbolSize: [4, 50], // 边两端的标记大小，可以是一个数组分别指定两端，也可以是单个统一指定。
+                edgeLabel: {
+                    show: true,
+                    textStyle: {
+                        fontSize: 10
+                    },
+                    formatter: "{c}"
+                },
+
+                //鼠标悬停高亮样式
+                emphasis: {
+                    itemStyle: {
+                        shadowColor: "rgba(127,127,127,0.4)",
+                        shadowBlur: 15,
+                    },
+                    lineStyle: {
+                        width: 4,
+                    },
+                    label: {
+                        textBorderColor: "rgba(255, 255, 255, 0.8)",
+                        textBorderWidth: 0.5,
+                    },
+                },
+
+                edgeSymbol: ['circle', 'arrow'],
+                edgeSymbolSize: [4, 10],
+                // edgeLabel: {
+                //     show: true,
+                //     formatter: '{b}:{@source}',
+                //     fontSize: 12
+                // },
+                data: [{'name': '农业技术开发与基础设施建立'}, {'name': '农业环境信息采集'}, {'name': '干旱监测分析'}, {'name': '虫害防治'}, {'name': '农业智能控制'}, {'name': '数据共享'}, {'name': '数据存储'}, {'name': '信息汇聚'}, {'name': '农业节水'}, {'name': '地质环境评估'}, {'name': '农业水资源配置'}, {'name': '农业能耗计算'}, {'name': '农业环境信息监测'}, {'name': '数据管理'}],
+                // links: [],
+                links: [{'source': '农业技术开发与基础设施建立', 'target': '数据管理', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '农业环境信息采集', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '干旱监测分析', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '虫害防治', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '农业智能控制', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '数据共享', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '数据存储', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '信息汇聚', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '农业节水', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '地质环境评估', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '农业水资源配置', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '农业能耗计算', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '农业环境信息监测', 'value': 'have_function_of'}, {'source': '农业技术开发与基础设施建立', 'target': '数据管理', 'value': 'have_function_of'}],
+                lineStyle: {
+                    opacity: 0.9,
+                    width: 2,
+                    curveness: 0.05
+                },
+                // label:{
+                //     show:true,
+                // }
+            }
+        ]
+    };
+
+    //节点自定义拖拽不回弹
+    myChart.on('mouseup', function (params) {
+        var op = myChart.getOption();
+        op.series[0].data[params.dataIndex].x = params.event.offsetX;
+        op.series[0].data[params.dataIndex].y = params.event.offsetY;
+        op.series[0].data[params.dataIndex].fixed = true;
+        myChart.setOption(op);
+    });
+
+    option && myChart.setOption(option);
+
+
+</script>
+</body>
+</html>
