@@ -25,4 +25,4 @@ tst2_driver.py  -m flask run
 <hr>
 
 ## Sustain-KG demo video
-[https://youtu.be/iTaTwge32rs](https://youtu.be/iTaTwge32rs "Sustain-KG demo video")
+[https://youtu.be/RbUaAUEtDPc](https://youtu.be/RbUaAUEtDPc "Sustain-KG demo video")
