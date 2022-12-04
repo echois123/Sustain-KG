@@ -6,5 +6,5 @@
 tst2_driver.py  -m flask run 
 ```
 
-##Demo video
-[Sustain-KG demo video https://youtu.be/iTaTwge32rs](https://youtu.be/iTaTwge32rs "Sustain-KG demo video")
+## Demo video
+[https://youtu.be/iTaTwge32rs](https://youtu.be/iTaTwge32rs "Sustain-KG demo video")
